@@ -4,35 +4,404 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Database System | CPE</title>
+    <title>CPE Engineering Management System | Dashboard</title>
+    <meta name="description" content="Interactive Computer Engineering Student Management & Telemetry System">
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body>
     <nav>
-        <a href="/" class="logo"><i class="fa-solid fa-database"></i> DatabaseProject</a>
+        <a href="/" class="logo">
+            <i class="fa-solid fa-microchip"></i> CPE System
+        </a>
         <div class="nav-links">
-            <a href="/">Dashboard</a>
-            <a href="/form">Student Entry</a>
+            <a href="/" class="active"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+            <a href="/form"><i class="fa-solid fa-user-plus"></i> Student Registry</a>
         </div>
     </nav>
 
-    <div class="container" style="display: flex; justify-content: center; align-items: center; min-height: 80vh;">
-        <div class="glass-card" style="text-align: center; max-width: 600px;">
-            <h1 class="fade-in"><i class="fa-solid fa-server" style="color: var(--primary); margin-right: 15px;"></i>Database System</h1>
-            <p class="subtitle fade-in delay-1">
-                นี่คือโปรเจคฝึกเขียนระบบ Backend เบื้องต้นด้วย Node.js และ Express <br>
-                เพื่อการศึกษาและพัฒนาทักษะสำหรับรายวิชา Database ของนักศึกษา CPE ปีสาม
-            </p>
-            
-            <div class="fade-in delay-2" style="margin-top: 2rem;">
-                <a href="/form" class="btn btn-primary" style="font-size: 1.1rem; padding: 1rem 2rem;">
-                    <i class="fa-solid fa-user-plus"></i> ไปยังหน้าแบบฟอร์ม (Form Page)
-                </a>
+    <div class="container">
+        <!-- Live KPI Telemetry Grid -->
+        <div class="stats-grid fade-in">
+            <div class="stat-card">
+                <div class="stat-icon stat-blue">
+                    <i class="fa-solid fa-users"></i>
+                </div>
+                <div class="stat-info">
+                    <h4>Total Students</h4>
+                    <div class="stat-value" id="statTotalStudents">--</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon stat-green">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+                <div class="stat-info">
+                    <h4>CPE Dept Enrolled</h4>
+                    <div class="stat-value" id="statCpeStudents">--</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon stat-purple">
+                    <i class="fa-solid fa-server"></i>
+                </div>
+                <div class="stat-info">
+                    <h4>System Uptime</h4>
+                    <div class="stat-value" id="statUptime">--</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon stat-amber">
+                    <i class="fa-solid fa-memory"></i>
+                </div>
+                <div class="stat-info">
+                    <h4>Heap Memory</h4>
+                    <div class="stat-value" id="statMemory">-- MB</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Card -->
+        <div class="glass-card fade-in delay-1">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <h2><i class="fa-solid fa-database" style="color: var(--primary); margin-right: 10px;"></i> Student Directory</h2>
+                    <p class="subtitle" style="margin-bottom: 0;">Real-time management dashboard backed by Layered RESTful Architecture.</p>
+                </div>
+                <div>
+                    <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 0.85rem; padding: 0.5rem 1rem;">
+                        <span class="pulse-dot"></span> <span id="systemStatusBadge">System Online</span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Controls & Filters -->
+            <div class="controls-bar">
+                <div class="search-box">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="searchInput" class="form-control" placeholder="Search by Student ID, Name, or Department...">
+                </div>
+
+                <div class="filter-group">
+                    <select id="deptFilter" class="form-control" style="min-width: 150px;">
+                        <option value="">All Departments</option>
+                        <option value="CPE">CPE</option>
+                        <option value="EE">EE</option>
+                        <option value="ME">ME</option>
+                        <option value="CHE">CHE</option>
+                        <option value="IE">IE</option>
+                    </select>
+
+                    <a href="/form" class="btn btn-primary">
+                        <i class="fa-solid fa-plus"></i> Add Student
+                    </a>
+                </div>
+            </div>
+
+            <!-- Data Table -->
+            <div class="table-responsive">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>Student ID</th>
+                            <th>Full Name</th>
+                            <th>Gender</th>
+                            <th>Department</th>
+                            <th>Created At</th>
+                            <th style="text-align: center;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentTableBody">
+                        <tr>
+                            <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                                <i class="fa-solid fa-spinner fa-spin" style="margin-right: 8px;"></i> Loading student records...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
+
+    <!-- Edit Student Modal -->
+    <div id="editModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-pen-to-square" style="color: var(--primary); margin-right: 8px;"></i> Edit Student Details</h3>
+                <button class="modal-close" onclick="closeEditModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="editStudentForm">
+                <div class="form-group">
+                    <label class="form-label" for="edit_student_id">Student ID (Read-only)</label>
+                    <input type="text" class="form-control" id="edit_student_id" readonly style="opacity: 0.7; cursor: not-allowed;">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="edit_firstname">First Name</label>
+                        <input type="text" class="form-control" id="edit_firstname" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="edit_lastname">Last Name</label>
+                        <input type="text" class="form-control" id="edit_lastname" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="edit_gender">Gender</label>
+                        <select class="form-control" id="edit_gender" required>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                            <option value="other">Other</option>
+                            <option value="prefer_not_to_say">Prefer not to say</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="edit_department">Department</label>
+                        <select class="form-control" id="edit_department" required>
+                            <option value="CPE">CPE</option>
+                            <option value="EE">EE</option>
+                            <option value="ME">ME</option>
+                            <option value="CHE">CHE</option>
+                            <option value="IE">IE</option>
+                            <option value="CE">CE</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;">
+                    <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="toast">
+        <i id="toastIcon" class="fa-solid fa-circle-check"></i> <span id="toastMessage">Action completed successfully!</span>
+    </div>
+
+    <script>
+        let allStudents = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchSystemHealth();
+            fetchStudents();
+
+            // Refresh system health telemetry every 10 seconds
+            setInterval(fetchSystemHealth, 10000);
+
+            // Filter event listeners
+            document.getElementById('searchInput').addEventListener('input', filterAndRenderStudents);
+            document.getElementById('deptFilter').addEventListener('change', filterAndRenderStudents);
+
+            // Edit form submit
+            document.getElementById('editStudentForm').addEventListener('submit', handleEditFormSubmit);
+        });
+
+        // Fetch System Health Telemetry from API
+        async function fetchSystemHealth() {
+            try {
+                const res = await fetch('/api/v1/system/health');
+                if (res.ok) {
+                    const data = await res.json();
+                    const sys = data.data;
+                    document.getElementById('statUptime').innerText = sys.uptime.formatted;
+                    document.getElementById('statMemory').innerText = sys.processMemory.heapUsedMB + ' MB';
+                    document.getElementById('systemStatusBadge').innerText = 'System Online (' + sys.system.nodeVersion + ')';
+                }
+            } catch (err) {
+                console.error('Telemetry fetch error:', err);
+                document.getElementById('systemStatusBadge').innerText = 'Telemetry Offline';
+            }
+        }
+
+        // Fetch Students list from API
+        async function fetchStudents() {
+            try {
+                const res = await fetch('/api/v1/students');
+                if (res.ok) {
+                    const json = await res.json();
+                    allStudents = json.data || [];
+                    
+                    // Update KPI counters
+                    if (json.meta && json.meta.stats) {
+                        document.getElementById('statTotalStudents').innerText = json.meta.stats.totalCount;
+                        document.getElementById('statCpeStudents').innerText = json.meta.stats.cpeCount;
+                    }
+
+                    filterAndRenderStudents();
+                }
+            } catch (err) {
+                console.error('Error loading students:', err);
+                showToast('Failed to load student data.', true);
+            }
+        }
+
+        // Filter and Render Students in Table
+        function filterAndRenderStudents() {
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+            const dept = document.getElementById('deptFilter').value.toUpperCase();
+
+            const filtered = allStudents.filter(s => {
+                const matchesQuery = !query || 
+                    s.student_id.toLowerCase().includes(query) ||
+                    s.firstname.toLowerCase().includes(query) ||
+                    s.lastname.toLowerCase().includes(query) ||
+                    (s.department && s.department.toLowerCase().includes(query));
+                
+                const matchesDept = !dept || (s.department || '').toUpperCase() === dept;
+
+                return matchesQuery && matchesDept;
+            });
+
+            const tbody = document.getElementById('studentTableBody');
+            if (filtered.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;">
+                            No student records found.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(student => {
+                const createdDate = student.createdAt ? new Date(student.createdAt).toLocaleDateString('en-GB') : 'N/A';
+                const deptCode = (student.department || 'CPE').toUpperCase();
+                const badgeClass = deptCode === 'CPE' ? 'badge-cpe' : deptCode === 'EE' ? 'badge-ee' : deptCode === 'ME' ? 'badge-me' : 'badge-dept';
+                
+                return `
+                    <tr>
+                        <td><strong>${escapeHtml(student.student_id)}</strong></td>
+                        <td>${escapeHtml(student.firstname)} ${escapeHtml(student.lastname)}</td>
+                        <td style="text-transform: capitalize;">${escapeHtml(student.gender || 'N/A')}</td>
+                        <td><span class="badge ${badgeClass}">${escapeHtml(deptCode)}</span></td>
+                        <td style="color: var(--text-muted); font-size: 0.85rem;">${createdDate}</td>
+                        <td style="text-align: center;">
+                            <button class="btn btn-sm btn-outline-primary" style="margin-right: 5px;" onclick="openEditModal('${escapeHtml(student.student_id)}')">
+                                <i class="fa-solid fa-pen"></i> Edit
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteStudent('${escapeHtml(student.student_id)}')">
+                                <i class="fa-solid fa-trash"></i> Delete
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Open Edit Modal
+        function openEditModal(studentId) {
+            const student = allStudents.find(s => s.student_id === studentId);
+            if (!student) return;
+
+            document.getElementById('edit_student_id').value = student.student_id;
+            document.getElementById('edit_firstname').value = student.firstname;
+            document.getElementById('edit_lastname').value = student.lastname;
+            document.getElementById('edit_gender').value = student.gender || 'male';
+            document.getElementById('edit_department').value = (student.department || 'CPE').toUpperCase();
+
+            document.getElementById('editModal').classList.add('show');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('show');
+        }
+
+        // Submit Edit Form (PUT request)
+        async function handleEditFormSubmit(e) {
+            e.preventDefault();
+            const studentId = document.getElementById('edit_student_id').value;
+            
+            const payload = {
+                firstname: document.getElementById('edit_firstname').value,
+                lastname: document.getElementById('edit_lastname').value,
+                gender: document.getElementById('edit_gender').value,
+                department: document.getElementById('edit_department').value
+            };
+
+            try {
+                const res = await fetch(`/api/v1/students/${studentId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    showToast('Student record updated successfully!');
+                    closeEditModal();
+                    fetchStudents();
+                } else {
+                    showToast(data.error?.message || 'Failed to update student.', true);
+                }
+            } catch (err) {
+                console.error('Update error:', err);
+                showToast('Network error while updating student record.', true);
+            }
+        }
+
+        // Delete Student (DELETE request)
+        async function deleteStudent(studentId) {
+            if (!confirm(`Are you sure you want to delete student ID '${studentId}'?`)) return;
+
+            try {
+                const res = await fetch(`/api/v1/students/${studentId}`, {
+                    method: 'DELETE'
+                });
+
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    showToast(`Student '${studentId}' removed successfully!`);
+                    fetchStudents();
+                } else {
+                    showToast(data.error?.message || 'Failed to delete student.', true);
+                }
+            } catch (err) {
+                console.error('Delete error:', err);
+                showToast('Network error while deleting student record.', true);
+            }
+        }
+
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMessage');
+            const toastIcon = document.getElementById('toastIcon');
+
+            toastMsg.innerText = message;
+            if (isError) {
+                toast.classList.add('toast-error');
+                toastIcon.className = 'fa-solid fa-triangle-exclamation';
+            } else {
+                toast.classList.remove('toast-error');
+                toastIcon.className = 'fa-solid fa-circle-check';
+            }
+
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3500);
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+    </script>
 </body>
 
 </html>

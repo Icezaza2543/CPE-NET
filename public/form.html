@@ -3,29 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Database Project | Student Form</title>
-    <meta name="description" content="Add a new student to the Database system">
+    <title>CPE Engineering Management System | Student Registration</title>
+    <meta name="description" content="Register a new student into the Computer Engineering system">
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <nav>
-        <a href="/" class="logo"><i class="fa-solid fa-database"></i> DatabaseProject</a>
+        <a href="/" class="logo">
+            <i class="fa-solid fa-microchip"></i> CPE System
+        </a>
         <div class="nav-links">
-            <a href="/">Dashboard</a>
-            <a href="/form">Student Entry</a>
+            <a href="/"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+            <a href="/form" class="active"><i class="fa-solid fa-user-plus"></i> Student Registry</a>
         </div>
     </nav>
 
     <div class="container">
-        <div class="glass-card" style="max-width: 700px; margin: 0 auto;">
-            <h1 class="fade-in"><i class="fa-regular fa-id-card" style="color: var(--primary); margin-right: 15px;"></i>Student Registry</h1>
-            <p class="subtitle fade-in delay-1">Enter the student's details below to register them in the system.</p>
+        <div class="glass-card" style="max-width: 720px; margin: 0 auto;">
+            <h1 class="fade-in" style="font-size: 2.2rem; margin-bottom: 0.5rem;">
+                <i class="fa-regular fa-id-card" style="color: var(--primary); margin-right: 12px;"></i>Student Registration
+            </h1>
+            <p class="subtitle fade-in delay-1" style="font-size: 1rem;">
+                Enter verified student details below to create an active record in the database.
+            </p>
             
             <form id="studentForm" class="fade-in delay-2">
                 <div class="form-group">
-                    <label class="form-label" for="student_id">Student ID</label>
-                    <input type="text" class="form-control" id="student_id" name="student_id" placeholder="e.g. 62363172" required autocomplete="off">
+                    <label class="form-label" for="student_id">Student ID (8 Numeric Digits)</label>
+                    <input type="text" class="form-control" id="student_id" name="student_id" placeholder="e.g. 62363172" required autocomplete="off" maxlength="8" pattern="\d{8}">
+                    <small id="idHelp" style="color: var(--text-muted); font-size: 0.8rem; margin-top: 4px; display: block;">Must be exactly 8 digits (e.g. 62363172)</small>
                 </div>
 
                 <div class="form-row">
@@ -39,20 +46,34 @@
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label" for="gender">Gender</label>
-                    <select class="form-control" id="gender" name="gender" required>
-                        <option value="" disabled selected>Select gender</option>
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                        <option value="other">Other</option>
-                        <option value="prefer_not_to_say">Prefer not to say</option>
-                    </select>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="gender">Gender</label>
+                        <select class="form-control" id="gender" name="gender" required>
+                            <option value="" disabled selected>Select gender</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                            <option value="other">Other</option>
+                            <option value="prefer_not_to_say">Prefer not to say</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="department">Department</label>
+                        <select class="form-control" id="department" name="department" required>
+                            <option value="CPE" selected>Computer Engineering (CPE)</option>
+                            <option value="EE">Electrical Engineering (EE)</option>
+                            <option value="ME">Mechanical Engineering (ME)</option>
+                            <option value="CHE">Chemical Engineering (CHE)</option>
+                            <option value="IE">Industrial Engineering (IE)</option>
+                            <option value="CE">Civil Engineering (CE)</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div class="form-group" style="margin-top: 2rem;">
-                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
-                        <i class="fa-solid fa-cloud-arrow-up"></i> Submit Data
+                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1.05rem;">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> Submit & Register Student
                     </button>
                 </div>
             </form>
@@ -60,7 +81,7 @@
     </div>
 
     <div id="toast" class="toast">
-        <i class="fa-solid fa-circle-check"></i> Data submitted successfully!
+        <i id="toastIcon" class="fa-solid fa-circle-check"></i> <span id="toastMessage">Data submitted successfully!</span>
     </div>
 
     <script>
@@ -69,18 +90,26 @@
             
             const btn = this.querySelector('button[type="submit"]');
             const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
+            
+            const studentId = document.getElementById('student_id').value.trim();
+            if (!/^\d{8}$/.test(studentId)) {
+                showToast('Student ID must be exactly 8 numeric digits.', true);
+                return;
+            }
+
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Registering...';
             btn.disabled = true;
 
             const formData = {
-                student_id: document.getElementById('student_id').value,
-                firstname: document.getElementById('firstname').value,
-                lastname: document.getElementById('lastname').value,
-                gender: document.getElementById('gender').value
+                student_id: studentId,
+                firstname: document.getElementById('firstname').value.trim(),
+                lastname: document.getElementById('lastname').value.trim(),
+                gender: document.getElementById('gender').value,
+                department: document.getElementById('department').value
             };
 
             try {
-                const response = await fetch('/form', {
+                const response = await fetch('/api/v1/students', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -88,29 +117,45 @@
                     body: JSON.stringify(formData)
                 });
 
-                if(response.ok) {
-                    const result = await response.json();
-                    console.log('Server response:', result);
-                    
-                    // Show success toast
-                    const toast = document.getElementById('toast');
-                    toast.classList.add('show');
-                    
-                    // Reset form
-                    this.reset();
+                const result = await response.json();
 
+                if (response.ok && result.success) {
+                    showToast('Student registered successfully!');
+                    this.reset();
                     setTimeout(() => {
-                        toast.classList.remove('show');
-                    }, 3000);
+                        window.location.href = '/';
+                    }, 1800);
+                } else {
+                    showToast(result.error?.message || 'Failed to register student.', true);
                 }
             } catch (error) {
                 console.error('Error submitting form:', error);
-                alert('An error occurred while submitting data.');
+                showToast('An error occurred while submitting data.', true);
             } finally {
                 btn.innerHTML = originalText;
                 btn.disabled = false;
             }
         });
+
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMessage');
+            const toastIcon = document.getElementById('toastIcon');
+
+            toastMsg.innerText = message;
+            if (isError) {
+                toast.classList.add('toast-error');
+                toastIcon.className = 'fa-solid fa-triangle-exclamation';
+            } else {
+                toast.classList.remove('toast-error');
+                toastIcon.className = 'fa-solid fa-circle-check';
+            }
+
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3500);
+        }
     </script>
 </body>
 </html>
