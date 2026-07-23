@@ -1,27 +1,20 @@
-// src/utils/utility.js
-const axios = require('axios');
+/**
+ * Legacy Utility Wrapper
+ * 
+ * @module utils/utility
+ * @description Provides backward compatibility wrappers delegating to the new Student Repository architecture.
+ */
 
-// Mock In-Memory Database for the Database Course Project
-let studentsDb = [
-  {
-    student_id: '62363172',
-    firstname: 'Terasit',
-    lastname: 'Juntarasombut',
-    gender: 'male',
-    department: 'CPE',
-    createdAt: new Date().toISOString()
-  }
-];
+const studentRepository = require('../repositories/studentRepository');
 
 /**
- * Find a student by their ID in the mock database
+ * Find a student by ID (Legacy wrapper)
  * @param {string} student_id 
- * @returns {object|null} Student object or null if not found
+ * @returns {Promise<Object|null>}
  */
 exports.findStudentById = async (student_id) => {
   try {
-    const student = studentsDb.find(s => s.student_id === student_id);
-    return student || null;
+    return await studentRepository.findById(student_id);
   } catch (err) {
     console.error('Error finding student:', err.message);
     throw new Error('Database connection failed');
@@ -29,32 +22,32 @@ exports.findStudentById = async (student_id) => {
 };
 
 /**
- * Add a new student to the mock database
- * @param {object} studentData 
- * @returns {object} The newly created student
+ * Add a student (Legacy wrapper)
+ * @param {Object} studentData 
+ * @returns {Promise<Object>}
  */
 exports.addStudent = async (studentData) => {
   try {
-    const newStudent = {
-      ...studentData,
-      createdAt: new Date().toISOString()
-    };
-    studentsDb.push(newStudent);
-    return newStudent;
+    return await studentRepository.create(studentData);
   } catch (err) {
     console.error('Error adding student:', err.message);
-    throw new Error('Failed to insert record into database');
+    throw new Error(err.message || 'Failed to insert record into database');
   }
 };
 
 /**
- * Retrieve all students from the mock database
- * @returns {Array} List of all students
+ * Get all students (Legacy wrapper)
+ * @returns {Promise<Array>}
  */
 exports.getAllStudents = async () => {
-  return studentsDb;
+  return await studentRepository.findAll();
 };
 
-exports.fakeStudentInfo = (student_id) => {
-  return studentsDb[0] || null;
+/**
+ * Get sample student info
+ * @returns {Promise<Object|null>}
+ */
+exports.fakeStudentInfo = async () => {
+  const students = await studentRepository.findAll();
+  return students[0] || null;
 };
