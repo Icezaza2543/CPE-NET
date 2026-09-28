@@ -1,8 +1,29 @@
-// src/routes/index.js
+/**
+ * Legacy Web & API Router
+ *
+ * @module routes/index
+ * @description Original lab endpoints kept for backward compatibility. They share validation and
+ * storage with API v1 but keep the legacy `{ error, message, result }` response shape.
+ * New clients should use `/api/v1/students`.
+ */
+
 const express = require('express');
 const router = express.Router();
 const path = require('path');
-const utility = require('../utils/utility');
+const studentRepository = require('../repositories/studentRepository');
+const { validateStudentPayload } = require('../middlewares/validator');
+
+/**
+ * Send an error in the legacy response shape, keeping the status code attached by lower layers.
+ *
+ * @param {import('express').Response} res
+ * @param {Error & { statusCode?: number }} error
+ */
+const sendLegacyError = (res, error) => {
+  const statusCode = error.statusCode || 500;
+  if (statusCode >= 500) console.error(`[Legacy Route Error] ${error.stack || error.message}`);
+  res.status(statusCode).json({ error: true, message: error.message });
+};
 
 router.get('/welcome', (req, res) => {
   res.json({
@@ -18,18 +39,8 @@ router.get('/form', (req, res) => {
 // Create a new student (C in CRUD)
 router.post('/form', async (req, res) => {
   try {
-    const { student_id, firstname, lastname, gender } = req.body;
-    
-    if (!student_id || !firstname || !lastname) {
-      return res.status(400).json({ error: true, message: 'Missing required fields' });
-    }
-
-    const newStudent = await utility.addStudent({
-      student_id,
-      firstname,
-      lastname,
-      gender
-    });
+    const studentData = validateStudentPayload(req.body, { isUpdate: false });
+    const newStudent = await studentRepository.create(studentData);
 
     res.status(201).json({
       error: false,
@@ -37,37 +48,38 @@ router.post('/form', async (req, res) => {
       result: newStudent
     });
   } catch (error) {
-    res.status(500).json({ error: true, message: error.message });
+    sendLegacyError(res, error);
   }
 });
 
 // Retrieve all students (R in CRUD)
 router.get('/students', async (req, res) => {
   try {
-    const students = await utility.getAllStudents();
+    const students = await studentRepository.findAll();
     res.status(200).json({
       error: false,
       count: students.length,
       result: students
     });
   } catch (error) {
-    res.status(500).json({ error: true, message: error.message });
+    sendLegacyError(res, error);
   }
 });
 
 // Retrieve a specific student by ID
 router.get('/student/:student_id', async (req, res) => {
   try {
-    const result = await utility.findStudentById(req.params.student_id);
+    const result = await studentRepository.findById(req.params.student_id);
     if (!result) {
       return res.status(404).json({ error: true, message: 'Student not found in database' });
     }
     res.json({ error: false, result });
   } catch (error) {
-    res.status(500).json({ error: true, message: error.message });
+    sendLegacyError(res, error);
   }
 });
 
+// Lab endpoints for observing HTTP status codes
 router.get('/release', (req, res) => {
   res.status(400).send("Database error simulation");
 });

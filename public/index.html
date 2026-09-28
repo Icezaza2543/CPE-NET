@@ -204,6 +204,15 @@
 
             // Edit form submit
             document.getElementById('editStudentForm').addEventListener('submit', handleEditFormSubmit);
+
+            // Row actions (event delegation; IDs are read from data attributes, never interpolated into JS)
+            document.getElementById('studentTableBody').addEventListener('click', (e) => {
+                const button = e.target.closest('button[data-action]');
+                if (!button) return;
+                const studentId = button.dataset.studentId;
+                if (button.dataset.action === 'edit') openEditModal(studentId);
+                if (button.dataset.action === 'delete') deleteStudent(studentId);
+            });
         });
 
         // Fetch System Health Telemetry from API
@@ -287,10 +296,10 @@
                         <td><span class="badge ${badgeClass}">${escapeHtml(deptCode)}</span></td>
                         <td style="color: var(--text-muted); font-size: 0.85rem;">${createdDate}</td>
                         <td style="text-align: center;">
-                            <button class="btn btn-sm btn-outline-primary" style="margin-right: 5px;" onclick="openEditModal('${escapeHtml(student.student_id)}')">
+                            <button type="button" class="btn btn-sm btn-outline-primary" style="margin-right: 5px;" data-action="edit" data-student-id="${escapeHtml(student.student_id)}">
                                 <i class="fa-solid fa-pen"></i> Edit
                             </button>
-                            <button class="btn btn-sm btn-outline-danger" onclick="deleteStudent('${escapeHtml(student.student_id)}')">
+                            <button type="button" class="btn btn-sm btn-outline-danger" data-action="delete" data-student-id="${escapeHtml(student.student_id)}">
                                 <i class="fa-solid fa-trash"></i> Delete
                             </button>
                         </td>
@@ -330,7 +339,7 @@
             };
 
             try {
-                const res = await fetch(`/api/v1/students/${studentId}`, {
+                const res = await fetch(`/api/v1/students/${encodeURIComponent(studentId)}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
@@ -355,7 +364,7 @@
             if (!confirm(`Are you sure you want to delete student ID '${studentId}'?`)) return;
 
             try {
-                const res = await fetch(`/api/v1/students/${studentId}`, {
+                const res = await fetch(`/api/v1/students/${encodeURIComponent(studentId)}`, {
                     method: 'DELETE'
                 });
 

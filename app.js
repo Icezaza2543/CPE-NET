@@ -24,14 +24,12 @@ const app = express();
 
 // Global Middlewares
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(requestLogger);
 
 // Static Assets Routing
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/jquery', express.static(path.join(__dirname, 'node_modules/jquery/dist/')));
-app.use('/jquery-ui', express.static(path.join(__dirname, 'node_modules/jquery-ui/dist/')));
 
 // API v1 Route Registrations
 app.use('/api/v1/students', studentRoutes);

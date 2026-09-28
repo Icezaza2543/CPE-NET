@@ -14,16 +14,22 @@
  * @param {import('express').NextFunction} next - Express next function
  */
 const errorHandler = (err, req, res, next) => {
-  console.error(`[Unhandled Error] ${err.stack || err.message}`);
+  // express.json() sets `status` (e.g. 400 malformed JSON, 413 payload too large); app errors set `statusCode`
+  const statusCode = err.statusCode || err.status || 500;
+  const isServerError = statusCode >= 500;
+  if (isServerError) console.error(`[Unhandled Error] ${err.stack || err.message}`);
 
-  const statusCode = err.statusCode || 500;
-  const errorCode = err.code || 'INTERNAL_SERVER_ERROR';
+  let errorCode = 'INTERNAL_SERVER_ERROR';
+  if (err.type === 'entity.parse.failed') errorCode = 'INVALID_JSON';
+  else if (err.type === 'entity.too.large') errorCode = 'PAYLOAD_TOO_LARGE';
+  else if (!isServerError) errorCode = err.code || 'BAD_REQUEST';
 
   res.status(statusCode).json({
     success: false,
     error: {
       code: errorCode,
-      message: err.message || 'An unexpected error occurred on the server.'
+      // Hide internal details of unexpected failures from clients
+      message: isServerError ? 'An unexpected error occurred on the server.' : err.message
     },
     timestamp: new Date().toISOString()
   });
